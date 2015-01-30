@@ -13,29 +13,32 @@ Case #2: no
 */
 
 /*
-Performance:
-
+Performance (Lower is faster):
+Max N = 30
 		Sorted		Reversed
-BFS		1.302		2.107
-DFS		41.000		0.054
-DP		2.606		2.566
-DPR		0.057		29.000
+DFS		41.000		0.054		Depth First Search
+DP		2.606		2.566		Dynamic Programming Pseudo Algorithm
+DPR		0.057		0.900		Dynamic Programming Memoization Pseudo Algorithm
+BFS		0.425		1.110		Pseudo Algorithm
+
+Max N = 42
+		Sorted		Reversed	Random
+DFS		300+		0.057
+DP		8.788		8.751		8.748	8.727	8.630	8.641	8.651
+DPR		0.059		4.928		0.707	3.352	2.153	13.528	1.201
+BFS		2.308		3.157		2.083	2.885	5.688	4.199	5.020
 */
 
-// BFS O(NG)
-function bfs(goal, items) {
-	var queue = [];
-	queue[0] = '';
-	for (var i = 0; i < items.length; i++) {
-		for (var q in queue) {
-			var value = parseInt(q) + items[i];
-			var info  = queue[q] + '+' + items[i];
-			if (goal >= value && !queue[value]) {
-				queue[value] = info;
-			}
-		}
+// DFS O(2^N)
+function dfs(goal, items) {
+	// items.sort(function(a, b) { return a-b;}).reverse(); // for optimization only
+	return search(0, 0);
+	function search(level, sum) {
+		if (sum == goal) return true;
+		if (sum >  goal) return false;
+		if (level > items.length) return false;
+		return search(level+1, sum+items[level]) || search(level+1, sum);
 	}
-	return queue[goal] != null;
 }
 
 // DP Iteration O(N^2)
@@ -64,28 +67,45 @@ function dpr(goal, items) {
 	var cache = [];
 	for (var i = 0; i < items.length; i++)
 		cache[i] = [];
-	// items.sort(function(a, b) { return a-b;});
+	// items.sort(function(a, b) { return a-b;});    // for optimization only
 	return search(items.length - 1, goal);
 
 	function search(n, g) {
 		if (n < 0 || g < 0) return false;
 		if (g == 0) return cache[n][g] = true;
-		if (n == 0) return cache[n][g] = g == items[n];
-		if (cache[n][g]) return cache[n][g];
+		if (cache[n][g] != null) return cache[n][g];
 		return cache[n][g] = search(n-1, g-items[n]) || search(n-1, g);
 	}
 }
 
-// DFS O(2^N)
-function dfs(goal, items) {
-	// items.sort(function(a, b) { return a-b;}).reverse();
-	return search(0, 0);
-	function search(level, sum) {
-		if (sum == goal) return true;
-		if (sum >  goal) return false;
-		if (level > items.length) return false;
-		return search(level+1, sum+items[level]) || search(level+1, sum);
+// BFS O(NG)
+function bfs_string(goal, items) {
+	var queue = [];
+	queue[0] = '';
+	for (var i = 0; i < items.length; i++) {
+		for (var q in queue) {
+			var value = parseInt(q) + items[i];
+			var info  = queue[q] + '+' + items[i];
+			if (goal >= value && !queue[value]) {
+				queue[value] = info;
+			}
+		}
 	}
+	return queue[goal] != null;
+}
+
+// BFS O(NG)
+function bfs(goal, items) {
+	var queue = [];
+	queue[0] = true;
+	for (var i = 0; i < items.length; i++) {
+		for (var q in queue) {
+			var value = parseInt(q) + items[i];
+			if (value == goal) return true;        // for optimization only
+			if (goal >= value) queue[value] = true;
+		}
+	}
+	return queue[goal] != null;
 }
 
 function parse(data) {
@@ -100,27 +120,30 @@ function parse(data) {
 			items[i-1] = parseInt(tokens[i]);
 			sum += items[i-1];
 		}
-		var ok = true;
-		if (sum % 2 != 0)
-			ok = false;
-		items.sort(function(a, b) { return a-b;})
-		//.reverse()
-		;
-		// console.log(items);
-		if (ok) {
-			//console.log("Case #" + t + ": " + (bfs(parseInt(sum/2), items) ? "Yes" : "No"));
-			console.log("Case #" + t + ": " + (dfs(parseInt(sum/2), items) ? "Yes" : "No"));
-			//console.log("Case #" + t + ": " + (dp(parseInt(sum/2), items) ? "Yes" : "No"));
-			//console.log("Case #" + t + ": " + (dpr(parseInt(sum/2), items) ? "Yes" : "No"));
+		/*
+		items.sort(function(a, b) { return a-b;})//.reverse()
+		for (var k = 0; k < items.length; k++) {
+			var r = parseInt(Math.random() * items.length);
+			var tmp = items[k];
+			items[k] = items[r];
+			items[r] = tmp;
 		}
-		else {
-			console.log("Case #" + t + ": No");
+		*/
+		var result = "No";
+		if (sum % 2 == 0) {
+			var algorithm = {'dfs': dfs, 'dp':dp, 'dpr':dpr, 'bfs':bfs, 'bfs_string': bfs_string};
+			result = algorithm['bfs'](parseInt(sum/2), items) ? "Yes" : "No";
 		}
+		console.log("Case #" + t + ": " + result);
 	}
 }
 
-process.stdin.resume();
-process.stdin.setEncoding("UTF8");
-var stream = "";
-process.stdin.on("data", function (input) { stream += input; });
-process.stdin.on("end", function () { parse(stream);});
+function main() {
+	process.stdin.resume();
+	process.stdin.setEncoding("UTF8");
+	var stream = "";
+	process.stdin.on("data", function (input) { stream += input; });
+	process.stdin.on("end", function () { parse(stream);});
+}
+
+main();
