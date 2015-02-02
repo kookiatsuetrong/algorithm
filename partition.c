@@ -13,6 +13,9 @@ int dfs(int level, int sum) {
 	return  dfs(level+1, sum+A[level]) ||
 			dfs(level+1, sum);
 }
+int dfs_main() {
+	return dfs(0, 0);
+}
 
 int dp() {
 	for (int j = 0; j <= goal; j++)
@@ -48,29 +51,20 @@ int dpr_main() {
 }
 
 int bfs() {
-	int queue[MAX_GOAL];
-	int queue_n = 0;
-	char exist[MAX_GOAL];
-
-	for (int j = 0; j < MAX_GOAL; j++)
-		exist[j] = 0;
-
-	exist[0] = 1;
-	queue[queue_n++] = 0;
-
+	char visited[MAX_GOAL + 1];
+	for (int j = 0; j <= MAX_GOAL; j++)
+		visited[j] = 0;
+	visited[0] = 1;
 	for (int i = 0; i < N; i++) {
-		int new_n = 0;
-		for (int j = 0; j < queue_n; j++) {
-			int value = queue[j] + A[i];
-			// if (value == goal) return 1;       // for optimization only
-			if (value <= goal && !exist[value]) {
-				exist[value] = 1;
-				queue[queue_n + new_n++] = value;
+		for (int j = goal; j >= 0; j--) {
+			int value = j + A[i];
+			if (visited[j] && value <= goal) {
+				visited[value] = 1;
+				if (value == goal) return 1;
 			}
 		}
-		queue_n += new_n;
 	}
-	return exist[goal];
+	return visited[goal];
 }
 
 int main(void) {
@@ -87,13 +81,10 @@ int main(void) {
 		scanf("\n");
 		if (goal % 2 == 0) {
 			goal /= 2;
-			//result = dfs(0, 0);
-			//result = dp();
-			//result = dpr_main();
-			result = bfs();
+			int (*algorithm[])() = {dfs_main, dp, dpr_main, bfs};
+			result = algorithm[3]();
 		}
 		printf("Case #%d: %s\n", t, result ? "Yes" : "No");
 	}
-
 	return 0;
 }
