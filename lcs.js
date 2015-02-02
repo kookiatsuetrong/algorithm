@@ -14,7 +14,6 @@ function LCS(s, t, m, n) {
 	return cache[key] = Math.max(value0, Math.max(value1, value2));
 }
 
-
 var s = "ATGCAGAGGGTACATTTGATAGCT";
 var t = "TGAGCAGTGCAGGCAGGCAGCAGG";
 var cache = [];
